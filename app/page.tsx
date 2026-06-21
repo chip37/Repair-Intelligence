@@ -1,15 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-async function getRepairs() {
-  const { data } = await supabaseAdmin
-    .from("repair_records")
-    .select("*")
-    .order("repair_date", { ascending: false });
-
-  return data || [];
-}
-const repairs = await getRepairs();
-
 type Repair = {
   id: string;
   machine_name: string;
@@ -20,26 +10,30 @@ type Repair = {
 };
 
 async function getRepairs() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/repairs`,
-    { cache: "no-store" }
-  );
+  const { data, error } = await supabaseAdmin
+    .from("repair_records")
+    .select("*")
+    .order("repair_date", { ascending: false });
 
-  return res.json();
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data || [];
 }
 
 export default async function DashboardPage() {
-  const { repairs } = await getRepairs();
+  const repairs = await getRepairs();
 
-  const totalRepairs = repairs?.length || 0;
+  const totalRepairs = repairs.length;
 
-  const totalDowntime =
-    repairs?.reduce(
-      (sum: number, repair: Repair) => sum + (repair.downtime_minutes || 0),
-      0
-    ) || 0;
+  const totalDowntime = repairs.reduce(
+    (sum: number, repair: Repair) => sum + (repair.downtime_minutes || 0),
+    0
+  );
 
-  const recentRepairs = repairs?.slice(0, 5) || [];
+  const recentRepairs = repairs.slice(0, 5);
 
   return (
     <main className="mx-auto max-w-5xl p-6">
