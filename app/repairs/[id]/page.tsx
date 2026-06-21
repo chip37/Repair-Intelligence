@@ -1,5 +1,6 @@
 import DeleteRepairButton from "./DeleteRepairButton";
 import SimilarRepairs from "./SimilarRepairs";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 type PageProps = {
   params: Promise<{
@@ -8,18 +9,23 @@ type PageProps = {
 };
 
 async function getRepair(id: string) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/repairs/${id}`,
-    { cache: "no-store" }
-  );
+  const { data, error } = await supabaseAdmin
+    .from("repair_records")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  return res.json();
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data;
 }
 
 export default async function RepairDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const { repair, error } = await getRepair(id);
-
+  const repair = await getRepair(id);
   if (!repair) {
     return (
       <main className="mx-auto max-w-3xl p-6">
