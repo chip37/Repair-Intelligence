@@ -1,181 +1,85 @@
-"use client";
+type Repair = {
+  id: string;
+  machine_name: string;
+  symptom: string;
+  resolution: string;
+  downtime_minutes: number | null;
+  repair_date: string;
+};
 
-import { useState } from "react";
+async function getRepairs() {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/repairs`,
+    { cache: "no-store" }
+  );
 
-export default function Home() {
-  const [message, setMessage] = useState("");
-  const [reply, setReply] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<string[]>([]);
+  return res.json();
+}
 
-  const [machineModel, setMachineModel] = useState("");
+export default async function DashboardPage() {
+  const { repairs } = await getRepairs();
 
-  async function sendMessage() {
-    try {
-      setLoading(true);
+  const totalRepairs = repairs?.length || 0;
 
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-       body: JSON.stringify({
-  machineModel,
-  message,
-}),
-      });
+  const totalDowntime =
+    repairs?.reduce(
+      (sum: number, repair: Repair) => sum + (repair.downtime_minutes || 0),
+      0
+    ) || 0;
 
-      const data = await res.json();
-
-      setReply(data.reply || data.error);
-      setHistory((prev) => [
-  `${message}\n\n${data.reply || data.error}`,
-  ...prev,
-]);
-
-    } catch (error) {
-      setReply("Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const recentRepairs = repairs?.slice(0, 5) || [];
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#050505",
-        color: "white",
-        padding: "40px",
-        fontFamily: "Arial",
-      }}
-    >
-      
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "3rem",
-            fontWeight: "bold",
-            marginBottom: "10px",
-          }}
-        >
-          Hanke AI Portal
-        </h1>
+    <main className="mx-auto max-w-5xl p-6">
+      <h1 className="mb-6 text-3xl font-bold">Repair Intelligence</h1>
 
-        <p
-          style={{
-            color: "#888",
-            marginBottom: "40px",
-          }}
-        >
-          AI-powered Hanke crimp machine diagnostics.
-        </p>
-        <select
-  value={machineModel}
-  onChange={(e) => setMachineModel(e.target.value)}
-  style={{
-    width: "100%",
-    padding: "14px",
-    borderRadius: "10px",
-    border: "1px solid #333",
-    background: "#111",
-    color: "white",
-    fontSize: "1rem",
-    marginBottom: "20px",
-  }}
->
-  <option value="">Select Machine Model</option>
-
-  <option value="Hanke HC-5">Hanke HC-5</option>
-  <option value="Hanke HC-10">Hanke HC-10</option>
-  <option value="Hanke HC-20">Hanke HC-20</option>
-  <option value="Hanke HC-40">Hanke HC-40</option>
-</select>
-
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Describe the machine problem..."
-          style={{
-            width: "100%",
-            minHeight: "160px",
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #333",
-            background: "#111",
-            color: "white",
-            fontSize: "1rem",
-            resize: "vertical",
-          }}
-        />
-
-        <button
-          onClick={sendMessage}
-          disabled={loading}
-          style={{
-            marginTop: "20px",
-            background: loading ? "#444" : "#00ff99",
-            color: "black",
-            border: "none",
-            padding: "14px 24px",
-            borderRadius: "10px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            fontSize: "1rem",
-          }}
-        >
-          {loading ? "Analyzing Machine..." : "Run Diagnostics"}
-        </button>
-
-        <div
-          style={{
-            marginTop: "40px",
-            background: "#111",
-            border: "1px solid #222",
-            borderRadius: "14px",
-            padding: "24px",
-            minHeight: "200px",
-            whiteSpace: "pre-wrap",
-            lineHeight: "1.7",
-          }}
-        >
-          {reply || "Diagnostic results will appear here."}
+      <div className="mb-8 grid gap-4 md:grid-cols-3">
+        <div className="rounded border p-4">
+          <p className="text-sm text-gray-600">Total Repairs</p>
+          <p className="text-3xl font-bold">{totalRepairs}</p>
         </div>
-        <div
-  style={{
-    marginTop: "40px",
-  }}
->
-  <h2
-    style={{
-      marginBottom: "20px",
-    }}
-  >
-    Diagnostic History
-  </h2>
 
-  {history.map((item, index) => (
-    <div
-      key={index}
-      style={{
-        background: "#111",
-        border: "1px solid #222",
-        borderRadius: "12px",
-        padding: "20px",
-        marginBottom: "20px",
-        whiteSpace: "pre-wrap",
-      }}
-    >
-      {item}
-    </div>
-  ))}
-</div>
+        <div className="rounded border p-4">
+          <p className="text-sm text-gray-600">Total Downtime</p>
+          <p className="text-3xl font-bold">{totalDowntime} min</p>
+        </div>
+
+        <div className="rounded border p-4">
+          <p className="text-sm text-gray-600">Quick Actions</p>
+          <a href="/repairs/new" className="mt-2 inline-block underline">
+            Record Repair
+          </a>
+        </div>
       </div>
+
+      <div className="mb-6 flex gap-4">
+        <a href="/repairs" className="rounded bg-black px-4 py-2 text-white">
+          View Repair History
+        </a>
+
+        <a href="/repairs/new" className="rounded border px-4 py-2">
+          Record New Repair
+        </a>
+      </div>
+
+      <section>
+        <h2 className="mb-4 text-2xl font-bold">Recent Repairs</h2>
+
+        <div className="space-y-4">
+          {recentRepairs.map((repair: Repair) => (
+            <a
+              key={repair.id}
+              href={`/repairs/${repair.id}`}
+              className="block rounded border p-4 hover:bg-gray-50"
+            >
+              <h3 className="text-xl font-semibold">{repair.machine_name}</h3>
+              <p><strong>Symptom:</strong> {repair.symptom}</p>
+              <p><strong>Fix:</strong> {repair.resolution}</p>
+              <p><strong>Date:</strong> {repair.repair_date}</p>
+            </a>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }
