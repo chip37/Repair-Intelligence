@@ -33,7 +33,7 @@ export default async function RepairDetailPage({ params }: PageProps) {
           ← Back to Repair History
         </a>
         <h1 className="text-2xl font-bold">Repair not found</h1>
-        <p>{error || "No repair record was returned."}</p>
+        <p>No repair record was returned.</p>
       </main>
     );
   }
