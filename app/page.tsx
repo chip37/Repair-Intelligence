@@ -1,3 +1,15 @@
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+
+async function getRepairs() {
+  const { data } = await supabaseAdmin
+    .from("repair_records")
+    .select("*")
+    .order("repair_date", { ascending: false });
+
+  return data || [];
+}
+const repairs = await getRepairs();
+
 type Repair = {
   id: string;
   machine_name: string;
