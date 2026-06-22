@@ -3,12 +3,40 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+type RepairForm = {
+  machine_name: string;
+  machine_model: string;
+  machine_serial: string;
+  symptom: string;
+  root_cause: string;
+  resolution: string;
+  parts_replaced: string;
+  downtime_minutes: string;
+  technician_name: string;
+  repair_date: string;
+  notes: string;
+};
+
+const fields: Array<[keyof RepairForm, string]> = [
+  ["machine_name", "Machine Name"],
+  ["machine_model", "Machine Model"],
+  ["machine_serial", "Machine Serial"],
+  ["symptom", "Symptom"],
+  ["root_cause", "Root Cause"],
+  ["resolution", "Resolution / Repair Action"],
+  ["parts_replaced", "Parts Replaced"],
+  ["downtime_minutes", "Downtime Minutes"],
+  ["technician_name", "Technician Name"],
+  ["repair_date", "Repair Date"],
+  ["notes", "Notes"],
+];
+
 export default function NewRepairPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RepairForm>({
     machine_name: "",
     machine_model: "",
     machine_serial: "",
@@ -22,7 +50,7 @@ export default function NewRepairPage() {
     notes: "",
   });
 
-  function updateField(field: string, value: string) {
+  function updateField(field: keyof RepairForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -58,25 +86,13 @@ export default function NewRepairPage() {
       <h1 className="mb-6 text-3xl font-bold">Record Repair</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {[
-          ["machine_name", "Machine Name"],
-          ["machine_model", "Machine Model"],
-          ["machine_serial", "Machine Serial"],
-          ["symptom", "Symptom"],
-          ["root_cause", "Root Cause"],
-          ["resolution", "Resolution / Repair Action"],
-          ["parts_replaced", "Parts Replaced"],
-          ["downtime_minutes", "Downtime Minutes"],
-          ["technician_name", "Technician Name"],
-          ["repair_date", "Repair Date"],
-          ["notes", "Notes"],
-        ].map(([field, label]) => (
+        {fields.map(([field, label]) => (
           <div key={field}>
             <label className="mb-1 block font-medium">{label}</label>
             <textarea
               className="w-full rounded border p-2"
               rows={field === "notes" || field === "symptom" ? 3 : 1}
-              value={(form as any)[field]}
+              value={form[field]}
               onChange={(e) => updateField(field, e.target.value)}
             />
           </div>

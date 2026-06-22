@@ -1,6 +1,7 @@
 import DeleteRepairButton from "./DeleteRepairButton";
 import SimilarRepairs from "./SimilarRepairs";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import Link from "next/link";
 
 type PageProps = {
   params: Promise<{
@@ -29,9 +30,9 @@ export default async function RepairDetailPage({ params }: PageProps) {
   if (!repair) {
     return (
       <main className="mx-auto max-w-3xl p-6">
-        <a href="/repairs" className="mb-6 inline-block underline">
-          ← Back to Repair History
-        </a>
+        <Link href="/repairs" className="mb-6 inline-block underline">
+          Back to Repair History
+        </Link>
         <h1 className="text-2xl font-bold">Repair not found</h1>
         <p>No repair record was returned.</p>
       </main>
@@ -39,9 +40,9 @@ export default async function RepairDetailPage({ params }: PageProps) {
   }
   return (
     <main className="mx-auto max-w-3xl p-6">
-      <a href="/repairs" className="mb-6 inline-block underline">
-        ← Back to Repair History
-      </a>
+      <Link href="/repairs" className="mb-6 inline-block underline">
+        Back to Repair History
+      </Link>
 
       <h1 className="mb-6 text-3xl font-bold">Repair Details</h1>
 
@@ -59,12 +60,12 @@ export default async function RepairDetailPage({ params }: PageProps) {
         <p><strong>Notes:</strong> {repair.notes}</p>
       </div>
       <DeleteRepairButton id={repair.id} />
-      <a
-  href={`/repairs/${repair.id}/edit`}
-  className="mr-3 mt-6 inline-block rounded bg-black px-4 py-2 text-white"
->
-  Edit Repair
-</a>
+      <Link
+        href={`/repairs/${repair.id}/edit`}
+        className="mr-3 mt-6 inline-block rounded bg-black px-4 py-2 text-white"
+      >
+        Edit Repair
+      </Link>
 <SimilarRepairs id={repair.id} />
     </main>
   );

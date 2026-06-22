@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  buildRepairOrQuery,
+  rankRepairs,
+  repairSearchText,
+  searchTermsForRepair,
+} from "@/lib/repairMatching";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -19,35 +25,24 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Repair not found" }, { status: 404 });
   }
 
-  const terms = [
-    currentRepair.symptom,
-    currentRepair.root_cause,
-    currentRepair.resolution,
-    currentRepair.parts_replaced,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .split(" ")
-    .filter((word) => word.length > 3)
-    .slice(0, 5);
+  const terms = searchTermsForRepair(currentRepair);
 
-  const orQuery = terms
-    .map(
-      (term) =>
-        `symptom.ilike.%${term}%,root_cause.ilike.%${term}%,resolution.ilike.%${term}%,parts_replaced.ilike.%${term}%`
-    )
-    .join(",");
+  if (terms.length === 0) {
+    return NextResponse.json({ repairs: [] });
+  }
 
   const { data, error } = await supabaseAdmin
     .from("repair_records")
     .select("*")
     .neq("id", id)
-    .or(orQuery)
-    .limit(5);
+    .or(buildRepairOrQuery(terms))
+    .limit(25);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ repairs: data || [] });
+  return NextResponse.json({
+    repairs: rankRepairs(repairSearchText(currentRepair), data || [], 5),
+  });
 }

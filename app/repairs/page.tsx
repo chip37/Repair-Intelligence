@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Repair = {
@@ -39,12 +40,12 @@ export default function RepairsPage() {
     <main className="mx-auto max-w-5xl p-6">
       <h1 className="mb-6 text-3xl font-bold">Repair History</h1>
 
-      <a
+      <Link
         href="/repairs/new"
         className="mb-6 inline-block rounded bg-black px-4 py-2 text-white"
       >
         Record New Repair
-      </a>
+      </Link>
 
       <input
         type="text"
@@ -63,12 +64,12 @@ export default function RepairsPage() {
             <p><strong>Technician:</strong> {repair.technician_name}</p>
             <p><strong>Date:</strong> {repair.repair_date}</p>
 
-            <a
+            <Link
               href={`/repairs/${repair.id}`}
               className="mt-3 inline-block rounded bg-black px-3 py-2 text-white"
             >
               View Details
-            </a>
+            </Link>
           </div>
         ))}
       </div>

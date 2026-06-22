@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import Link from "next/link";
 
 type Repair = {
   id: string;
@@ -52,20 +53,28 @@ export default async function DashboardPage() {
 
         <div className="rounded border p-4">
           <p className="text-sm text-gray-600">Quick Actions</p>
-          <a href="/repairs/new" className="mt-2 inline-block underline">
+          <Link href="/repairs/new" className="mt-2 inline-block underline">
             Record Repair
-          </a>
+          </Link>
+          <br />
+          <Link href="/ask" className="mt-2 inline-block underline">
+            Ask Repair Intelligence
+          </Link>
         </div>
       </div>
 
       <div className="mb-6 flex gap-4">
-        <a href="/repairs" className="rounded bg-black px-4 py-2 text-white">
+        <Link href="/repairs" className="rounded bg-black px-4 py-2 text-white">
           View Repair History
-        </a>
+        </Link>
 
-        <a href="/repairs/new" className="rounded border px-4 py-2">
+        <Link href="/repairs/new" className="rounded border px-4 py-2">
           Record New Repair
-        </a>
+        </Link>
+
+        <Link href="/ask" className="rounded border px-4 py-2">
+          Ask a Problem
+        </Link>
       </div>
 
       <section>
