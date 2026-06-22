@@ -1,19 +1,22 @@
+import DashboardWorkspace from "./DashboardWorkspace";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import Link from "next/link";
 
 type Repair = {
   id: string;
-  machine_name: string;
-  symptom: string;
-  resolution: string;
+  machine_name: string | null;
+  symptom: string | null;
+  root_cause: string | null;
+  resolution: string | null;
   downtime_minutes: number | null;
-  repair_date: string;
+  repair_date: string | null;
 };
 
 async function getRepairs() {
   const { data, error } = await supabaseAdmin
     .from("repair_records")
-    .select("*")
+    .select(
+      "id,machine_name,symptom,root_cause,resolution,downtime_minutes,repair_date"
+    )
     .order("repair_date", { ascending: false });
 
   if (error) {
@@ -24,77 +27,41 @@ async function getRepairs() {
   return data || [];
 }
 
-export default async function DashboardPage() {
-  const repairs = await getRepairs();
+function getMostCommonFailure(repairs: Repair[]) {
+  const counts = repairs.reduce<Record<string, number>>((totals, repair) => {
+    const failure = repair.root_cause?.trim() || repair.symptom?.trim();
 
-  const totalRepairs = repairs.length;
+    if (!failure) {
+      return totals;
+    }
 
-  const totalDowntime = repairs.reduce(
-    (sum: number, repair: Repair) => sum + (repair.downtime_minutes || 0),
-    0
-  );
-
-  const recentRepairs = repairs.slice(0, 5);
+    totals[failure] = (totals[failure] || 0) + 1;
+    return totals;
+  }, {});
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-6 text-3xl font-bold">Repair Intelligence</h1>
+    Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+    "Not enough data"
+  );
+}
 
-      <div className="mb-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded border p-4">
-          <p className="text-sm text-gray-600">Total Repairs</p>
-          <p className="text-3xl font-bold">{totalRepairs}</p>
-        </div>
+export default async function DashboardPage() {
+  const repairs = await getRepairs();
+  const recentRepairs = repairs.slice(0, 5);
 
-        <div className="rounded border p-4">
-          <p className="text-sm text-gray-600">Total Downtime</p>
-          <p className="text-3xl font-bold">{totalDowntime} min</p>
-        </div>
+  const stats = {
+    totalRepairs: repairs.length,
+    totalDowntime: repairs.reduce(
+      (sum, repair) => sum + (repair.downtime_minutes || 0),
+      0
+    ),
+    machinesTracked: new Set(
+      repairs.map((repair) => repair.machine_name).filter(Boolean)
+    ).size,
+    mostCommonFailure: getMostCommonFailure(repairs),
+  };
 
-        <div className="rounded border p-4">
-          <p className="text-sm text-gray-600">Quick Actions</p>
-          <Link href="/repairs/new" className="mt-2 inline-block underline">
-            Record Repair
-          </Link>
-          <br />
-          <Link href="/ask" className="mt-2 inline-block underline">
-            Ask Repair Intelligence
-          </Link>
-        </div>
-      </div>
-
-      <div className="mb-6 flex gap-4">
-        <Link href="/repairs" className="rounded bg-black px-4 py-2 text-white">
-          View Repair History
-        </Link>
-
-        <Link href="/repairs/new" className="rounded border px-4 py-2">
-          Record New Repair
-        </Link>
-
-        <Link href="/ask" className="rounded border px-4 py-2">
-          Ask a Problem
-        </Link>
-      </div>
-
-      <section>
-        <h2 className="mb-4 text-2xl font-bold">Recent Repairs</h2>
-
-        <div className="space-y-4">
-          {recentRepairs.map((repair: Repair) => (
-            <a
-              key={repair.id}
-              href={`/repairs/${repair.id}`}
-              className="block rounded border p-4 hover:bg-gray-50"
-            >
-              <h3 className="text-xl font-semibold">{repair.machine_name}</h3>
-              <p><strong>Symptom:</strong> {repair.symptom}</p>
-              <p><strong>Fix:</strong> {repair.resolution}</p>
-              <p><strong>Date:</strong> {repair.repair_date}</p>
-            </a>
-          ))}
-        </div>
-      </section>
-    </main>
+  return (
+    <DashboardWorkspace recentRepairs={recentRepairs} stats={stats} />
   );
 }
