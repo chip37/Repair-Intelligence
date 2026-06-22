@@ -75,6 +75,9 @@ export default async function DashboardPage() {
         <Link href="/ask" className="rounded border px-4 py-2">
           Ask a Problem
         </Link>
+        <a href="/ask" className="rounded bg-black px-4 py-2 text-white">
+          Ask Repair Intelligence
+        </a>
       </div>
 
       <section>
